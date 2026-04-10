@@ -75,7 +75,7 @@
 
   <!-- LIKE / DISLIKE -->
   <h3>Do you like it?</h3>
-  <button onclick="like()">👍 Like</button>
+  <button onclick="like()">👍 Like (<span id="likeCount">0</span>)</button>
   <button onclick="dislike()">👎 Dislike</button>
 
   <p id="voteStatus"></p>
@@ -121,12 +121,14 @@ window.onload = function () {
 
   // 👍 LIKE
   window.like = function() {
-    db.collection("votes").add({
-      type: "like",
-      time: new Date()
-    });
-    document.getElementById("voteStatus").innerText = "You liked this!";
-  };
+  db.collection("votes").add({
+    type: "like",
+    time: new Date()
+  })
+  .then(() => {
+    loadLikes(); // update number after click
+  });
+};
 
   // 👎 DISLIKE
   window.dislike = function() {
@@ -136,6 +138,12 @@ window.onload = function () {
     });
     document.getElementById("voteStatus").innerText = "You disliked this!";
   };
+  function loadLikes() {
+  db.collection("votes").where("type", "==", "like").get()
+    .then((snapshot) => {
+      document.getElementById("likeCount").innerText = snapshot.size;
+    });
+}
 
   // 💬 SEND COMMENT
   document.getElementById("sendBtn").addEventListener("click", function () {
@@ -183,6 +191,7 @@ window.onload = function () {
   }
 
   loadComments();
+  loadLikes();
 
 };
 </script>
