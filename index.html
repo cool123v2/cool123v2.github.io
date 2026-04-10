@@ -121,13 +121,22 @@ window.onload = function () {
 
   // 👍 LIKE
   window.like = function() {
+
+  // check if already liked
+  if (localStorage.getItem("liked")) {
+    alert("You already liked this!");
+    return;
+  }
+
   db.collection("votes").add({
     type: "like",
     time: new Date()
   })
   .then(() => {
-    loadLikes(); // update number after click
+    localStorage.setItem("liked", "true"); // save that they liked
+    loadLikes();
   });
+
 };
 
   // 👎 DISLIKE
