@@ -120,11 +120,10 @@ window.onload = function () {
   };
 
   // 👍 LIKE
-  window.like = function() {
+ window.like = function() {
 
-  // check if already liked
   if (localStorage.getItem("liked")) {
-    alert("You already liked this!");
+    document.getElementById("voteStatus").innerText = "You already liked this!";
     return;
   }
 
@@ -133,12 +132,12 @@ window.onload = function () {
     time: new Date()
   })
   .then(() => {
-    localStorage.setItem("liked", "true"); // save that they liked
-    loadLikes();
+    localStorage.setItem("liked", "true");
+    document.getElementById("voteStatus").innerText = "You liked this!";
+    loadLikes(); // 🔥 update count
   });
 
 };
-
   // 👎 DISLIKE
   window.dislike = function() {
     db.collection("votes").add({
@@ -153,6 +152,7 @@ window.onload = function () {
       document.getElementById("likeCount").innerText = snapshot.size;
     });
 }
+
 
   // 💬 SEND COMMENT
   document.getElementById("sendBtn").addEventListener("click", function () {
