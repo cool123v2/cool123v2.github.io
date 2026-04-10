@@ -60,13 +60,58 @@
   </div>
 
   <!-- Firebase -->
-<script>
-  console.log("JS LOADED");
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
-  document.getElementById("sendBtn").addEventListener("click", function () {
-    console.log("BUTTON CLICKED");
-    alert("BUTTON WORKS");
-  });
+<script>
+  window.onload = function () {
+
+    console.log("JS LOADED");
+
+    // ✅ Your fixed Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyAGwycss38JoBgdvWRnqYeZj3r1X_M9Gb8",
+      authDomain: "cool123v2-vlogs.firebaseapp.com",
+      projectId: "cool123v2-vlogs",
+      storageBucket: "cool123v2-vlogs.appspot.com",
+      messagingSenderId: "662292845970",
+      appId: "1:662292845970:web:3ccd6e49796f64aaa21d4b",
+      measurementId: "G-NQZM0VERV4"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Button click
+    document.getElementById("sendBtn").addEventListener("click", function () {
+      console.log("BUTTON CLICKED");
+
+      const name = document.getElementById("name").value;
+      const message = document.getElementById("message").value;
+
+      if (!name || !message) {
+        alert("Fill everything!");
+        return;
+      }
+
+      db.collection("feedback").add({
+        name: name,
+        message: message,
+        time: new Date()
+      })
+      .then(() => {
+        console.log("SENT TO FIREBASE");
+        document.getElementById("status").innerText = "Sent!";
+        document.getElementById("message").value = "";
+      })
+      .catch((error) => {
+        console.error("FIREBASE ERROR:", error);
+        document.getElementById("status").innerText = "Error sending!";
+      });
+    });
+
+  };
 </script>
 
 </body>
