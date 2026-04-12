@@ -237,7 +237,7 @@ db.collection("comments").add({
   name: cleanName,
   message: message,
   time: new Date()
-});
+})
     .then(() => {
       document.getElementById("status").innerText = "Sent!";
       document.getElementById("message").value = "";
