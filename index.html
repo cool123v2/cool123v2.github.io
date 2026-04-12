@@ -152,12 +152,16 @@ window.onload = function () {
   // 👎 DISLIKE (OPTIMIZED)
   // =========================
   window.dislike = function() {
+    if (localStorage.getItem("disliked")) {
+      document.getElementById("voteStatus").innerText = "You already disliked this!";
+      return;
+    }
 
     const dislikeRef = db.collection("meta").doc("dislikes");
 
     dislikeRef.update({
       count: firebase.firestore.FieldValue.increment(1)
-    })
+    }, {merge: true})
     .then(() => {
       document.getElementById("voteStatus").innerText = "You disliked this!";
     })
