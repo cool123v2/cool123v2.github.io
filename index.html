@@ -77,7 +77,7 @@
   <!-- LIKE / DISLIKE -->
   <h3>Do you like it?</h3>
   <button onclick="like()">👍 Like (<span id="likeCount">0</span>)</button>
-  <button onclick="dislike()">👎 Dislike</button>
+  <button onclick="dislike()">👎 Dislike(<span id="dislikeCount">0</span>)</button>
 
   <p id="voteStatus"></p>
 </div>
@@ -171,6 +171,12 @@ window.onload = function () {
     .onSnapshot((doc) => {
       if (doc.exists) {
         document.getElementById("likeCount").innerText = doc.data().count;
+      }
+    });
+  db.collection("meta").doc("dislikes")
+    .onSnapshot((doc) => {
+      if (doc.exists) {
+        document.getElementById("dislikeCount").innerText = doc.data().count;
       }
     });
 
