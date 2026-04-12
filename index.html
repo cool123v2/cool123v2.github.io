@@ -140,7 +140,7 @@ window.onload = function () {
 
     likeRef.update({
       count: firebase.firestore.FieldValue.increment(1)
-    })
+    }, { merge: true })
     .then(() => {
       localStorage.setItem("liked", "true");
       document.getElementById("voteStatus").innerText = "You liked this!";
