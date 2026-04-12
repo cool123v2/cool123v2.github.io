@@ -219,18 +219,25 @@ window.onload = function () {
   document.getElementById("sendBtn").addEventListener("click", function () {
 
     const name = document.getElementById("name").value;
-    const message = document.getElementById("message").value;
+  const message = document.getElementById("message").value;
 
-    if (!name || !message) {
-      alert("Fill everything!");
-      return;
-    }
+if (!name || !message || name.length < 3) {
+  alert("Enter a valid name!");
+  return;
+}
 
-    db.collection("comments").add({
-      name: name,
-      message: message,
-      time: new Date()
-    })
+if (name.length > 15) {
+  alert("Name too long!");
+  return;
+}
+
+const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, "");
+
+db.collection("comments").add({
+  name: cleanName,
+  message: message,
+  time: new Date()
+});
     .then(() => {
       document.getElementById("status").innerText = "Sent!";
       document.getElementById("message").value = "";
