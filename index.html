@@ -117,11 +117,18 @@ window.onload = function () {
   // ⭐ RATE
   // =========================
   window.rate = function(stars) {
+    if (localStorage.getItem("rated")) {
+      document.getElementById("voteStatus").innerText = "You already rated this!";
+      return;
+    }
+
     db.collection("ratings").add({
       stars: stars,
       time: new Date()
     })
     .then(() => {
+      localStorage.setItem("rated", "true");
+      document.getElementById("stars").innerHTML = "Thanks for rating!";
       alert("Rated " + stars + "⭐");
     })
     .catch(console.error);
