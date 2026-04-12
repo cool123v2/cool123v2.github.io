@@ -78,7 +78,7 @@
   <!-- LIKE / DISLIKE -->
   <h3>Do you like it?</h3>
   <button onclick="like()">👍 Like (<span id="likeCount">0</span>)</button>
-  <button onclick="dislike()">👎 Dislike(<span id="dislikeCount">0</span>)</button>
+  <button onclick="dislike()">👎 Dislike (<span id="dislikeCount">0</span>)</button>
 
   <p id="voteStatus"></p>
 </div>
@@ -146,7 +146,7 @@ window.onload = function () {
 
     const likeRef = db.collection("meta").doc("likes");
 
-    likeRef.update({
+    likeRef.set({
       count: firebase.firestore.FieldValue.increment(1)
     }, { merge: true })
     .then(() => {
@@ -188,7 +188,7 @@ window.onload = function () {
 
     const dislikeRef = db.collection("meta").doc("dislikes");
 
-    dislikeRef.update({
+    dislikeRef.set({
       count: firebase.firestore.FieldValue.increment(1)
     }, {merge: true})
     .then(() => {
