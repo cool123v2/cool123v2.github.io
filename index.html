@@ -99,6 +99,7 @@
 <script>
 window.onload = function () {
 
+  // 🔥 Firebase Setup
   const firebaseConfig = {
     apiKey: "AIzaSyAGwycss38JoBgdvWRnqYeZj3r1X_M9Gb8",
     authDomain: "cool123v2-vlogs.firebaseapp.com",
@@ -111,51 +112,71 @@ window.onload = function () {
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
+  // =========================
   // ⭐ RATE
+  // =========================
   window.rate = function(stars) {
     db.collection("ratings").add({
       stars: stars,
       time: new Date()
-    });
-    alert("Rated " + stars + "⭐");
+    })
+    .then(() => {
+      alert("Rated " + stars + "⭐");
+    })
+    .catch(console.error);
   };
 
-  // 👍 LIKE
- window.like = function() {
+  // =========================
+  // 👍 LIKE (OPTIMIZED)
+  // =========================
+  window.like = function() {
 
-  if (localStorage.getItem("liked")) {
-    document.getElementById("voteStatus").innerText = "You already liked this!";
-    return;
-  }
+    if (localStorage.getItem("liked")) {
+      document.getElementById("voteStatus").innerText = "You already liked this!";
+      return;
+    }
 
-  db.collection("votes").add({
-    type: "like",
-    time: new Date()
-  })
-  .then(() => {
-    localStorage.setItem("liked", "true");
-    document.getElementById("voteStatus").innerText = "You liked this!";
-    loadLikes(); // 🔥 update count
-  });
+    const likeRef = db.collection("meta").doc("likes");
 
-};
-  // 👎 DISLIKE
+    likeRef.update({
+      count: firebase.firestore.FieldValue.increment(1)
+    })
+    .then(() => {
+      localStorage.setItem("liked", "true");
+      document.getElementById("voteStatus").innerText = "You liked this!";
+    })
+    .catch(console.error);
+  };
+
+  // =========================
+  // 👎 DISLIKE (OPTIMIZED)
+  // =========================
   window.dislike = function() {
-    db.collection("votes").add({
-      type: "dislike",
-      time: new Date()
-    });
-    document.getElementById("voteStatus").innerText = "You disliked this!";
+
+    const dislikeRef = db.collection("meta").doc("dislikes");
+
+    dislikeRef.update({
+      count: firebase.firestore.FieldValue.increment(1)
+    })
+    .then(() => {
+      document.getElementById("voteStatus").innerText = "You disliked this!";
+    })
+    .catch(console.error);
   };
-  function loadLikes() {
-  db.collection("votes").where("type", "==", "like").get()
-    .then((snapshot) => {
-      document.getElementById("likeCount").innerText = snapshot.size;
+
+  // =========================
+  // 📊 LIVE LIKE COUNT
+  // =========================
+  db.collection("meta").doc("likes")
+    .onSnapshot((doc) => {
+      if (doc.exists) {
+        document.getElementById("likeCount").innerText = doc.data().count;
+      }
     });
-}
 
-
+  // =========================
   // 💬 SEND COMMENT
+  // =========================
   document.getElementById("sendBtn").addEventListener("click", function () {
 
     const name = document.getElementById("name").value;
@@ -175,15 +196,21 @@ window.onload = function () {
       document.getElementById("status").innerText = "Sent!";
       document.getElementById("message").value = "";
       loadComments();
-    });
+    })
+    .catch(console.error);
   });
 
-  // 📥 LOAD COMMENTS
+  // =========================
+  // 📥 LOAD COMMENTS (LIMITED)
+  // =========================
   function loadComments() {
     const commentsDiv = document.getElementById("comments");
     commentsDiv.innerHTML = "";
 
-    db.collection("comments").orderBy("time", "desc").get()
+    db.collection("comments")
+      .orderBy("time", "desc")
+      .limit(20) // 🔥 only load latest 20
+      .get()
       .then((snapshot) => {
         snapshot.forEach(doc => {
           const data = doc.data();
@@ -197,11 +224,11 @@ window.onload = function () {
 
           commentsDiv.appendChild(div);
         });
-      });
+      })
+      .catch(console.error);
   }
 
   loadComments();
-  loadLikes();
 
 };
 </script>
