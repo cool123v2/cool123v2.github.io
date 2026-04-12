@@ -67,6 +67,7 @@
   <!-- RATING -->
   <h3>Rate this level ⭐</h3>
   <div id="stars">
+    <h3 id="avgRating">⭐ Average Rating: 0</h3>
     <button onclick="rate(1)">⭐</button>
     <button onclick="rate(2)">⭐⭐</button>
     <button onclick="rate(3)">⭐⭐⭐</button>
@@ -151,6 +152,27 @@ window.onload = function () {
   // =========================
   // 👎 DISLIKE (OPTIMIZED)
   // =========================
+  function loadAverageRating() {
+      db.collection("ratings").get()
+      .then((snapshot) => {
+          let total = 0;
+          let count = 0;
+          
+          snapshot.forEach(doc => {
+            const data = doc.data();
+          
+            total += data.stars;
+            count++;
+          });
+        let avg = 0;
+        
+        if (count > 0) {
+          avg = total / count;
+      }
+      document.getElementById("avgRating").innerText =
+  "⭐ Average Rating: " + avg.toFixed(1) + " / 5";  
+    });
+  }
   window.dislike = function() {
     if (localStorage.getItem("disliked")) {
       document.getElementById("voteStatus").innerText = "You already disliked this!";
@@ -239,6 +261,7 @@ window.onload = function () {
   }
 
   loadComments();
+  loadAverageRating()
 
 };
 </script>
