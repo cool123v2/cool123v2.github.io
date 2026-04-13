@@ -119,6 +119,7 @@ window.onload = function () {
   window.rate = function(stars) {
     if (localStorage.getItem("rated")) {
       document.getElementById("voteStatus").innerText = "You already rated this!";
+      document.getElementById("stars").innerHTML = "Thanks for rating!";
       return;
     }
 
