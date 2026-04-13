@@ -66,7 +66,7 @@
 
   <!-- RATING -->
   <h3>Rate this level ⭐</h3>
-  <h3 id="avgRating">⭐ Average Rating: 0</h3>
+  <h2 id="avgRating">⭐ Average Rating: 0</h2>
   <div id="stars">
     <button onclick="rate(1)">⭐</button>
     <button onclick="rate(2)">⭐⭐</button>
@@ -186,16 +186,17 @@ window.onload = function () {
       document.getElementById("voteStatus").innerText = "You already disliked this!";
       return;
     }
-
-    const dislikeRef = db.collection("meta").doc("dislikes");
-
-    dislikeRef.set({
-      count: firebase.firestore.FieldValue.increment(1)
-    }, {merge: true})
-    .then(() => {
-      document.getElementById("voteStatus").innerText = "You disliked this!";
-    })
-    .catch(console.error);
+    else{
+      const dislikeRef = db.collection("meta").doc("dislikes");
+  
+      dislikeRef.set({
+        count: firebase.firestore.FieldValue.increment(1)
+      }, {merge: true})
+      .then(() => {
+        document.getElementById("voteStatus").innerText = "You disliked this!";
+      })
+      .catch(console.error);
+    }
   };
 
   // =========================
