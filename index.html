@@ -193,6 +193,7 @@ window.onload = function () {
         count: firebase.firestore.FieldValue.increment(1)
       }, {merge: true})
       .then(() => {
+        localStorage.setItem("disliked", "true");
         document.getElementById("voteStatus").innerText = "You disliked this!";
       })
       .catch(console.error);
