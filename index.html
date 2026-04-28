@@ -49,24 +49,24 @@
 
 <body>
 
-  <h1>cool123v2 Vlogs</h1>
-  <div class="box">
+<h1>cool123v2 Vlogs</h1>
+
+<div class="box">
   <h2>My Geometry Dash Level</h2>
 
   <p>Roblox: cool123v2</p>
   <p>GD: COOL123V2</p>
   <p>Fortnite: cool123v22115</p>
 
-  <!-- VIDEO -->
   <iframe width="100%" height="315"
     src="https://www.youtube.com/embed/50pDAAtu3aI"
     frameborder="0"
     allowfullscreen>
   </iframe>
 
-  <!-- RATING -->
   <h3>Rate this level ⭐</h3>
   <h2 id="avgRating">⭐ Average Rating: 0</h2>
+
   <div id="stars">
     <button onclick="rate(1)">⭐</button>
     <button onclick="rate(2)">⭐⭐</button>
@@ -75,15 +75,14 @@
     <button onclick="rate(5)">⭐⭐⭐⭐⭐</button>
   </div>
 
-  <!-- LIKE / DISLIKE -->
   <h3>Do you like it?</h3>
   <button onclick="like()">👍 Like (<span id="likeCount">0</span>)</button>
   <button onclick="dislike()">👎 Dislike (<span id="dislikeCount">0</span>)</button>
 
   <p id="voteStatus"></p>
-    
 </div>
-  <div class="box">
+
+<div class="box">
   <h2>Account</h2>
 
   <input type="email" id="email" placeholder="Email">
@@ -95,7 +94,8 @@
 
   <p id="userStatus">Not logged in</p>
 </div>
-  <div class="box">
+
+<div class="box">
   <h2>Comments</h2>
 
   <input type="text" id="name" placeholder="Your name">
@@ -106,48 +106,15 @@
 
   <div id="comments"></div>
 </div>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+
+<!-- ✅ CORRECT SCRIPT ORDER -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
 <script>
 window.onload = function () {
-  const auth = firebase.auth();
-  window.signUp = function() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then(() => {
-      alert("Account created!");
-    })
-    .catch(err => alert(err.message));
-};
-  window.login = function() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => {
-      alert("Logged in!");
-    })
-    .catch(err => alert(err.message));
-};
-  window.logout = function() {
-  auth.signOut()
-    .then(() => {
-      alert("Logged out!");
-    });
-};
-  auth.onAuthStateChanged(user => {
-  if (user) {
-    document.getElementById("userStatus").innerText =
-      "Logged in as: " + user.email;
-  } else {
-    document.getElementById("userStatus").innerText =
-      "Not logged in";
-  }
-});
   // 🔥 Firebase Setup
   const firebaseConfig = {
     apiKey: "AIzaSyAGwycss38JoBgdvWRnqYeZj3r1X_M9Gb8",
@@ -159,15 +126,44 @@ window.onload = function () {
   };
 
   firebase.initializeApp(firebaseConfig);
+
   const db = firebase.firestore();
+  const auth = firebase.auth();
 
   // =========================
-  // ⭐ RATE
+  // 🔐 AUTH SYSTEM
+  // =========================
+  window.signUp = function() {
+    const email = emailInput.value;
+    const password = passwordInput.value;
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(() => alert("Account created!"))
+      .catch(err => alert(err.message));
+  };
+
+  window.login = function() {
+    auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
+      .then(() => alert("Logged in!"))
+      .catch(err => alert(err.message));
+  };
+
+  window.logout = function() {
+    auth.signOut().then(() => alert("Logged out!"));
+  };
+
+  auth.onAuthStateChanged(user => {
+    userStatus.innerText = user
+      ? "Logged in as: " + user.email
+      : "Not logged in";
+  });
+
+  // =========================
+  // ⭐ RATING
   // =========================
   window.rate = function(stars) {
     if (localStorage.getItem("rated")) {
-      document.getElementById("voteStatus").innerText = "You already rated this!";
-      document.getElementById("stars").innerHTML = "Thanks for rating!";
+      voteStatus.innerText = "You already rated!";
       return;
     }
 
@@ -177,138 +173,110 @@ window.onload = function () {
     })
     .then(() => {
       localStorage.setItem("rated", "true");
-      document.getElementById("stars").innerHTML = "Thanks for rating!";
-      alert("Rated " + stars + "⭐");
-    })
-    .catch(console.error);
+      voteStatus.innerText = "Rated " + stars + "⭐";
+      loadAverageRating(); // ✅ update live
+    });
   };
 
+  function loadAverageRating() {
+    db.collection("ratings").get().then(snapshot => {
+      let total = 0;
+      let count = 0;
+
+      snapshot.forEach(doc => {
+        total += doc.data().stars;
+        count++;
+      });
+
+      let avg = count ? total / count : 0;
+
+      avgRating.innerText =
+        "⭐ Average Rating: " + avg.toFixed(1) + " / 5 (" + count + " ratings)";
+    });
+  }
+
   // =========================
-  // 👍 LIKE (OPTIMIZED)
+  // 👍 LIKE
   // =========================
   window.like = function() {
-
     if (localStorage.getItem("liked")) {
-      document.getElementById("voteStatus").innerText = "You already liked this!";
+      voteStatus.innerText = "Already liked!";
       return;
     }
 
-    const likeRef = db.collection("meta").doc("likes");
-
-    likeRef.set({
+    db.collection("meta").doc("likes").set({
       count: firebase.firestore.FieldValue.increment(1)
     }, { merge: true })
     .then(() => {
       localStorage.setItem("liked", "true");
-      document.getElementById("voteStatus").innerText = "You liked this!";
-    })
-    .catch(console.error);
+      voteStatus.innerText = "Liked!";
+    });
   };
 
   // =========================
-  // 👎 DISLIKE (OPTIMIZED)
+  // 👎 DISLIKE
   // =========================
-  function loadAverageRating() {
-      db.collection("ratings").get()
-      .then((snapshot) => {
-          let total = 0;
-          let count = 0;
-          
-          snapshot.forEach(doc => {
-            const data = doc.data();
-          
-            total += data.stars;
-            count++;
-          });
-        let avg = 0;
-        
-        if (count > 0) {
-          avg = total / count;
-      }
-      document.getElementById("avgRating").innerText =
-  "⭐ Average Rating: " + avg.toFixed(1) + " / 5"+" ("+count+" ratings)";  
-    });
-  }
   window.dislike = function() {
     if (localStorage.getItem("disliked")) {
-      document.getElementById("voteStatus").innerText = "You already disliked this!";
+      voteStatus.innerText = "Already disliked!";
       return;
     }
-    else{
-      const dislikeRef = db.collection("meta").doc("dislikes");
-  
-      dislikeRef.set({
-        count: firebase.firestore.FieldValue.increment(1)
-      }, {merge: true})
-      .then(() => {
-        localStorage.setItem("disliked", "true");
-        document.getElementById("voteStatus").innerText = "You disliked this!";
-      })
-      .catch(console.error);
-    }
+
+    db.collection("meta").doc("dislikes").set({
+      count: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true })
+    .then(() => {
+      localStorage.setItem("disliked", "true");
+      voteStatus.innerText = "Disliked!";
+    });
   };
 
   // =========================
-  // 📊 LIVE LIKE COUNT
+  // 📊 LIVE COUNTS
   // =========================
-  db.collection("meta").doc("likes")
-    .onSnapshot((doc) => {
-      if (doc.exists) {
-        document.getElementById("likeCount").innerText = doc.data().count;
-      }
-    });
-  db.collection("meta").doc("dislikes")
-    .onSnapshot((doc) => {
-      if (doc.exists) {
-        document.getElementById("dislikeCount").innerText = doc.data().count;
-      }
-    });
+  db.collection("meta").doc("likes").onSnapshot(doc => {
+    if (doc.exists) likeCount.innerText = doc.data().count;
+  });
 
-  // =========================
-  // 💬 SEND COMMENT
-  // =========================
-  document.getElementById("sendBtn").addEventListener("click", function () {
-
-    const name = document.getElementById("name").value;
-  const message = document.getElementById("message").value;
-
-if (!name || !message || name.length < 3) {
-  alert("Enter a valid name!");
-  return;
-}
-
-if (name.length > 15) {
-  alert("Name too long!");
-  return;
-}
-
-const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, "");
-
-db.collection("comments").add({
-  name: auth.currentUser ? auth.currentUser.email : cleanName,
-  message: message,
-  time: new Date()
-})
-    .then(() => {
-      document.getElementById("status").innerText = "Sent!";
-      document.getElementById("message").value = "";
-      loadComments();
-    })
-    .catch(console.error);
+  db.collection("meta").doc("dislikes").onSnapshot(doc => {
+    if (doc.exists) dislikeCount.innerText = doc.data().count;
   });
 
   // =========================
-  // 📥 LOAD COMMENTS (LIMITED)
+  // 💬 COMMENTS
   // =========================
+  sendBtn.addEventListener("click", function () {
+
+    const name = nameInput.value;
+    const message = messageInput.value;
+
+    if (!name || !message || name.length < 3) {
+      alert("Enter valid name!");
+      return;
+    }
+
+    const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, "");
+
+    db.collection("comments").add({
+      name: auth.currentUser ? auth.currentUser.email : cleanName,
+      message: message,
+      time: new Date()
+    })
+    .then(() => {
+      status.innerText = "Sent!";
+      messageInput.value = "";
+      loadComments();
+    });
+  });
+
   function loadComments() {
-    const commentsDiv = document.getElementById("comments");
-    commentsDiv.innerHTML = "";
+    comments.innerHTML = "";
 
     db.collection("comments")
       .orderBy("time", "desc")
-      .limit(20) // 🔥 only load latest 20
+      .limit(20)
       .get()
-      .then((snapshot) => {
+      .then(snapshot => {
         snapshot.forEach(doc => {
           const data = doc.data();
 
@@ -318,17 +286,16 @@ db.collection("comments").add({
           div.style.background = "#111";
 
           div.innerHTML = "<b>" + data.name + "</b>: " + data.message;
-
-          commentsDiv.appendChild(div);
+          comments.appendChild(div);
         });
-      })
-      .catch(console.error);
+      });
   }
 
   loadComments();
-  loadAverageRating()
+  loadAverageRating();
 
 };
 </script>
+
 </body>
 </html>
