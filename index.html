@@ -134,29 +134,22 @@ window.onload = function () {
   // 🔐 AUTH SYSTEM
   // =========================
   window.signUp = function() {
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-    auth.createUserWithEmailAndPassword(email, password)
-      .then(() => alert("Account created!"))
-      .catch(err => alert(err.message));
-  };
+  auth.createUserWithEmailAndPassword(email, password)
+    .then(() => alert("Account created!"))
+    .catch(err => alert(err.message));
+};
 
-  window.login = function() {
-    auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-      .then(() => alert("Logged in!"))
-      .catch(err => alert(err.message));
-  };
+window.login = function() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
 
-  window.logout = function() {
-    auth.signOut().then(() => alert("Logged out!"));
-  };
-
-  auth.onAuthStateChanged(user => {
-    userStatus.innerText = user
-      ? "Logged in as: " + user.email
-      : "Not logged in";
-  });
+  auth.signInWithEmailAndPassword(email, password)
+    .then(() => alert("Logged in!"))
+    .catch(err => alert(err.message));
+};
 
   // =========================
   // ⭐ RATING
