@@ -134,8 +134,8 @@ window.onload = function () {
   // 🔐 AUTH SYSTEM
   // =========================
   window.signUp = function() {
-    const email = emailInput.value;
-    const password = passwordInput.value;
+    const emailInput = document.getElementById("email");
+    const passwordInput = document.getElementById("password");
 
     auth.createUserWithEmailAndPassword(email, password)
       .then(() => alert("Account created!"))
