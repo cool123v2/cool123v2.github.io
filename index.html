@@ -283,6 +283,8 @@ window.onload = function () {
     if (user) {
       db.collection("users").doc(user.uid).get().then(doc => {
         const username = doc.data().username;
+        nameInput.value = username;     // 👈 autofill
+        nameInput.disabled = true;  
 
         db.collection("comments").add({
           name: username,
