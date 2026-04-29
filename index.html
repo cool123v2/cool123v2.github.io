@@ -136,9 +136,21 @@ window.onload = function () {
   window.signUp = function() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+  const username = document.getElementById("username").value;
 
   auth.createUserWithEmailAndPassword(email, password)
-    .then(() => alert("Account created!"))
+    .then((userCredential) => {
+
+      const user = userCredential.user;
+
+      // 🔥 save username in Firestore
+      db.collection("users").doc(user.uid).set({
+        username: username,
+        email: email
+      });
+
+      alert("Account created!");
+    })
     .catch(err => alert(err.message));
 };
 
@@ -250,16 +262,30 @@ window.login = function() {
 
     const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, "");
 
+    const user = auth.currentUser;
+
+if (user) {
+  db.collection("users").doc(user.uid).get().then(doc => {
+    const username = doc.data().username;
+
     db.collection("comments").add({
-      name: auth.currentUser ? auth.currentUser.email : cleanName,
+      name: username,
       message: message,
       time: new Date()
-    })
-    .then(() => {
-      status.innerText = "Sent!";
-      messageInput.value = "";
-      loadComments();
     });
+
+    loadComments();
+  });
+} else {
+  // fallback
+  db.collection("comments").add({
+    name: cleanName,
+    message: message,
+    time: new Date()
+  });
+
+  loadComments();
+}
   });
 
   function loadComments() {
