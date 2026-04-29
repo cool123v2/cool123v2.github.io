@@ -116,9 +116,8 @@
 <script>
 window.onload = function () {
 
-  // 🔥 Firebase Setup
   const firebaseConfig = {
-    apiKey: "AIzaSyAGwycss38JoBgdvWRnqYeZj3r1X_M9Gb8",
+    apiKey: "YOUR_API_KEY",
     authDomain: "cool123v2-vlogs.firebaseapp.com",
     projectId: "cool123v2-vlogs",
     storageBucket: "cool123v2-vlogs.appspot.com",
@@ -132,42 +131,54 @@ window.onload = function () {
   const auth = firebase.auth();
 
   // =========================
-  // 🔐 AUTH SYSTEM
+  // 🔐 AUTH
   // =========================
   window.signUp = function() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const username = document.getElementById("username").value;
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const username = document.getElementById("username").value;
 
-  auth.createUserWithEmailAndPassword(email, password)
-    .then((userCredential) => {
+    auth.createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
 
-      const user = userCredential.user;
+        db.collection("users").doc(user.uid).set({
+          username: username,
+          email: email
+        });
 
-      // 🔥 save username in Firestore
-      db.collection("users").doc(user.uid).set({
-        username: username,
-        email: email
-      });
+        alert("Account created!");
+      })
+      .catch(err => alert(err.message));
+  };
 
-      alert("Account created!");
-    })
-    .catch(err => alert(err.message));
-};
+  window.login = function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
 
-window.login = function() {
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => alert("Logged in!"))
+      .catch(err => alert(err.message));
+  };
 
-  auth.signInWithEmailAndPassword(email, password)
-    .then(() => alert("Logged in!"))
-    .catch(err => alert(err.message));
-};
+  window.logout = function() {
+    auth.signOut().then(() => alert("Logged out!"));
+  };
+
+  // 👤 show user
+  auth.onAuthStateChanged(user => {
+    const userStatus = document.getElementById("userStatus");
+    userStatus.innerText = user
+      ? "Logged in as: " + user.email
+      : "Not logged in";
+  });
 
   // =========================
   // ⭐ RATING
   // =========================
   window.rate = function(stars) {
+    const voteStatus = document.getElementById("voteStatus");
+
     if (localStorage.getItem("rated")) {
       voteStatus.innerText = "You already rated!";
       return;
@@ -180,11 +191,13 @@ window.login = function() {
     .then(() => {
       localStorage.setItem("rated", "true");
       voteStatus.innerText = "Rated " + stars + "⭐";
-      loadAverageRating(); // ✅ update live
+      loadAverageRating();
     });
   };
 
   function loadAverageRating() {
+    const avgRating = document.getElementById("avgRating");
+
     db.collection("ratings").get().then(snapshot => {
       let total = 0;
       let count = 0;
@@ -202,9 +215,11 @@ window.login = function() {
   }
 
   // =========================
-  // 👍 LIKE
+  // 👍 LIKE / 👎 DISLIKE
   // =========================
   window.like = function() {
+    const voteStatus = document.getElementById("voteStatus");
+
     if (localStorage.getItem("liked")) {
       voteStatus.innerText = "Already liked!";
       return;
@@ -219,10 +234,9 @@ window.login = function() {
     });
   };
 
-  // =========================
-  // 👎 DISLIKE
-  // =========================
   window.dislike = function() {
+    const voteStatus = document.getElementById("voteStatus");
+
     if (localStorage.getItem("disliked")) {
       voteStatus.innerText = "Already disliked!";
       return;
@@ -237,24 +251,26 @@ window.login = function() {
     });
   };
 
-  // =========================
-  // 📊 LIVE COUNTS
-  // =========================
+  // live counts
   db.collection("meta").doc("likes").onSnapshot(doc => {
-    if (doc.exists) likeCount.innerText = doc.data().count;
+    if (doc.exists) {
+      document.getElementById("likeCount").innerText = doc.data().count;
+    }
   });
 
   db.collection("meta").doc("dislikes").onSnapshot(doc => {
-    if (doc.exists) dislikeCount.innerText = doc.data().count;
+    if (doc.exists) {
+      document.getElementById("dislikeCount").innerText = doc.data().count;
+    }
   });
 
   // =========================
   // 💬 COMMENTS
   // =========================
-  sendBtn.addEventListener("click", function () {
+  document.getElementById("sendBtn").addEventListener("click", function () {
 
-    const name = nameInput.value;
-    const message = messageInput.value;
+    const name = document.getElementById("name").value;
+    const message = document.getElementById("message").value;
 
     if (!name || !message || name.length < 3) {
       alert("Enter valid name!");
@@ -262,34 +278,29 @@ window.login = function() {
     }
 
     const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, "");
-
     const user = auth.currentUser;
 
-if (user) {
-  db.collection("users").doc(user.uid).get().then(doc => {
-    const username = doc.data().username;
+    if (user) {
+      db.collection("users").doc(user.uid).get().then(doc => {
+        const username = doc.data().username;
 
-    db.collection("comments").add({
-      name: username,
-      message: message,
-      time: new Date()
-    });
-
-    loadComments();
-  });
-} else {
-  // fallback
-  db.collection("comments").add({
-    name: cleanName,
-    message: message,
-    time: new Date()
-  });
-
-  loadComments();
-}
+        db.collection("comments").add({
+          name: username,
+          message: message,
+          time: new Date()
+        }).then(loadComments);
+      });
+    } else {
+      db.collection("comments").add({
+        name: cleanName,
+        message: message,
+        time: new Date()
+      }).then(loadComments);
+    }
   });
 
   function loadComments() {
+    const comments = document.getElementById("comments");
     comments.innerHTML = "";
 
     db.collection("comments")
@@ -313,7 +324,6 @@ if (user) {
 
   loadComments();
   loadAverageRating();
-
 };
 </script>
 
