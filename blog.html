@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>cool123v2 vlogs</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0a0a0a;
+      color: #00eaff;
+      font-family: 'Trebuchet MS', sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+
+    h1 {
+      font-size: 50px;
+      text-shadow: 0 0 20px #00eaff;
+    }
+
+    .box {
+      margin: 30px auto;
+      padding: 20px;
+      max-width: 600px;
+      background: #111;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #00eaff;
+    }
+
+    input, textarea, button {
+      width: 80%;
+      margin: 10px;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+    }
+
+    button {
+      background: #00eaff;
+      color: black;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #00c9d6;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>cool123v2 Vlogs</h1>
+
+<div class="box">
+  <h2>My Geometry Dash Level</h2>
+
+  <p>Roblox: cool123v2</p>
+  <p>GD: COOL123V2</p>
+  <p>Fortnite: cool123v22115</p>
+
+  <iframe width="100%" height="315"
+    src="https://www.youtube.com/embed/50pDAAtu3aI"
+    frameborder="0"
+    allowfullscreen>
+  </iframe>
+
+  <h3>Rate this level ⭐</h3>
+  <h2 id="avgRating">⭐ Average Rating: 0</h2>
+
+  <div id="stars">
+    <button onclick="rate(1)">⭐</button>
+    <button onclick="rate(2)">⭐⭐</button>
+    <button onclick="rate(3)">⭐⭐⭐</button>
+    <button onclick="rate(4)">⭐⭐⭐⭐</button>
+    <button onclick="rate(5)">⭐⭐⭐⭐⭐</button>
+  </div>
+
+  <h3>Do you like it?</h3>
+  <button onclick="like()">👍 Like (<span id="likeCount">0</span>)</button>
+  <button onclick="dislike()">👎 Dislike (<span id="dislikeCount">0</span>)</button>
+
+  <p id="voteStatus"></p>
+</div>
+
+<div class="box">
+  <h2>Account</h2>
+
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="password" placeholder="Password">
+  <input type="text" id="username" placeholder="Username">
+
+  <button onclick="signUp()">Sign Up</button>
+  <button onclick="login()">Login</button>
+  <button onclick="logout()">Logout</button>
+
+  <p id="userStatus">Not logged in</p>
+</div>
+
+<div class="box">
+  <h2>Comments</h2>
+
+  <input type="text" id="name" placeholder="Your name">
+  <textarea id="message" placeholder="Your comment..."></textarea>
+  <button id="sendBtn">Send</button>
+
+  <p id="status"></p>
+
+  <div id="comments"></div>
+</div>
+
+<!-- ✅ CORRECT SCRIPT ORDER -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+window.onload = function () {
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAGwycss38JoBgdvWRnqYeZj3r1X_M9Gb8",
+    authDomain: "cool123v2-vlogs.firebaseapp.com",
+    projectId: "cool123v2-vlogs",
+    storageBucket: "cool123v2-vlogs.appspot.com",
+    messagingSenderId: "662292845970",
+    appId: "1:662292845970:web:3ccd6e49796f64aaa21d4b"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  // =========================
+  // 🔐 AUTH
+  // =========================
+  window.signUp = function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+    const username = document.getElementById("username").value;
+
+    auth.createUserWithEmailAndPassword(email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+
+        db.collection("users").doc(user.uid).set({
+          username: username,
+          email: email
+        });
+
+        alert("Account created!");
+      })
+      .catch(err => alert(err.message));
+  };
+
+  window.login = function() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => alert("Logged in!"))
+      .catch(err => alert(err.message));
+  };
+
+  window.logout = function() {
+    auth.signOut().then(() => alert("Logged out!"));
+  };
+
+  // 👤 show user
+  auth.onAuthStateChanged(user => {
+    const userStatus = document.getElementById("userStatus");
+    userStatus.innerText = user
+      ? "Logged in as: " + user.email
+      : "Not logged in";
+  });
+
+  // =========================
+  // ⭐ RATING
+  // =========================
+  window.rate = function(stars) {
+    const voteStatus = document.getElementById("voteStatus");
+
+    if (localStorage.getItem("rated")) {
+      voteStatus.innerText = "You already rated!";
+      return;
+    }
+
+    db.collection("ratings").add({
+      stars: stars,
+      time: new Date()
+    })
+    .then(() => {
+      localStorage.setItem("rated", "true");
+      voteStatus.innerText = "Rated " + stars + "⭐";
+      loadAverageRating();
+    });
+  };
+
+  function loadAverageRating() {
+    const avgRating = document.getElementById("avgRating");
+
+    db.collection("ratings").get().then(snapshot => {
+      let total = 0;
+      let count = 0;
+
+      snapshot.forEach(doc => {
+        total += doc.data().stars;
+        count++;
+      });
+
+      let avg = count ? total / count : 0;
+
+      avgRating.innerText =
+        "⭐ Average Rating: " + avg.toFixed(1) + " / 5 (" + count + " ratings)";
+    });
+  }
+
+  // =========================
+  // 👍 LIKE / 👎 DISLIKE
+  // =========================
+  window.like = function() {
+    const voteStatus = document.getElementById("voteStatus");
+
+    if (localStorage.getItem("liked")) {
+      voteStatus.innerText = "Already liked!";
+      return;
+    }
+
+    db.collection("meta").doc("likes").set({
+      count: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true })
+    .then(() => {
+      localStorage.setItem("liked", "true");
+      voteStatus.innerText = "Liked!";
+    });
+  };
+
+  window.dislike = function() {
+    const voteStatus = document.getElementById("voteStatus");
+
+    if (localStorage.getItem("disliked")) {
+      voteStatus.innerText = "Already disliked!";
+      return;
+    }
+
+    db.collection("meta").doc("dislikes").set({
+      count: firebase.firestore.FieldValue.increment(1)
+    }, { merge: true })
+    .then(() => {
+      localStorage.setItem("disliked", "true");
+      voteStatus.innerText = "Disliked!";
+    });
+  };
+
+  // live counts
+  db.collection("meta").doc("likes").onSnapshot(doc => {
+    if (doc.exists) {
+      document.getElementById("likeCount").innerText = doc.data().count;
+    }
+  });
+
+  db.collection("meta").doc("dislikes").onSnapshot(doc => {
+    if (doc.exists) {
+      document.getElementById("dislikeCount").innerText = doc.data().count;
+    }
+  });
+
+  // =========================
+  // 💬 COMMENTS
+  // =========================
+  document.getElementById("sendBtn").addEventListener("click", function () {
+
+    const name = document.getElementById("name").value;
+    const message = document.getElementById("message").value;
+
+    if (!name || !message || name.length < 3) {
+      alert("Enter valid name!");
+      return;
+    }
+
+    const cleanName = name.replace(/[^a-zA-Z0-9 ]/g, "");
+    const user = auth.currentUser;
+
+    if (user) {
+      db.collection("users").doc(user.uid).get().then(doc => {
+        const username = doc.data().username;
+        nameInput.value = username;     // 👈 autofill
+        nameInput.disabled = true;  
+
+        db.collection("comments").add({
+          name: username,
+          message: message,
+          time: new Date()
+        }).then(loadComments);
+      });
+    } else {
+      db.collection("comments").add({
+        name: cleanName,
+        message: message,
+        time: new Date()
+      }).then(loadComments);
+    }
+  });
+
+  function loadComments() {
+    const comments = document.getElementById("comments");
+    comments.innerHTML = "";
+
+    db.collection("comments")
+      .orderBy("time", "desc")
+      .limit(20)
+      .get()
+      .then(snapshot => {
+        snapshot.forEach(doc => {
+          const data = doc.data();
+
+          const div = document.createElement("div");
+          div.style.margin = "10px";
+          div.style.padding = "10px";
+          div.style.background = "#111";
+
+          div.innerHTML = "<b>" + data.name + "</b>: " + data.message;
+          comments.appendChild(div);
+        });
+      });
+  }
+
+  loadComments();
+  loadAverageRating();
+};
+</script>
+
+</body>
+</html>
