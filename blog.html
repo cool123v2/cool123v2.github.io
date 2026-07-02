@@ -108,7 +108,7 @@
   <div id="comments"></div>
 </div>
 
-<!-- ✅ CORRECT SCRIPT ORDER -->
+<!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
@@ -165,7 +165,6 @@ window.onload = function () {
     auth.signOut().then(() => alert("Logged out!"));
   };
 
-  // 👤 show user
   auth.onAuthStateChanged(user => {
     const userStatus = document.getElementById("userStatus");
     userStatus.innerText = user
@@ -251,7 +250,6 @@ window.onload = function () {
     });
   };
 
-  // live counts
   db.collection("meta").doc("likes").onSnapshot(doc => {
     if (doc.exists) {
       document.getElementById("likeCount").innerText = doc.data().count;
@@ -283,8 +281,9 @@ window.onload = function () {
     if (user) {
       db.collection("users").doc(user.uid).get().then(doc => {
         const username = doc.data().username;
-        nameInput.value = username;     // 👈 autofill
-        nameInput.disabled = true;  
+
+        document.getElementById("name").value = username;
+        document.getElementById("name").disabled = true;
 
         db.collection("comments").add({
           name: username,
